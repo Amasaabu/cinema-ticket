@@ -43,6 +43,8 @@ public class TicketServiceImpl implements TicketService {
         var adultRequest = 0;
         var totalTicket = 0;
         for (var ticket: ticketTypeRequests) {
+            /* ensure number of ticket  entered is positive */
+            if (ticket.getNoOfTickets()<0) throw new InvalidPurchaseException();
             totalTicket = totalTicket + ticket.getNoOfTickets();
             if (ticket.getTicketType()== TicketTypeRequest.Type.ADULT) {
                 adultRequest = adultRequest + ticket.getNoOfTickets();
@@ -113,7 +115,7 @@ public class TicketServiceImpl implements TicketService {
         var totalCost = calculateTotalCost(ticketTypeRequests);
         //process payment
         paymentService.makePayment(accountId, totalCost);
-        //now book seats
+        //Calculate number of seat to be booked
         var totalSeatsToReserve = calculateNumberOfSeat(ticketTypeRequests);
         seatService.reserveSeat(accountId, totalSeatsToReserve);
 
