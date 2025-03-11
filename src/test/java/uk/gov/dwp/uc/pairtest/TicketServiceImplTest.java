@@ -73,7 +73,7 @@ public class TicketServiceImplTest {
 
         ticketService.purchaseTickets(accountId, tickets);
         verify(ticketPaymentService, times(1)).makePayment(accountId, EXPECTED_TOTAL_COST);
-        final var EXPECTED_NUMBER_OF_SEAT_TO_RESERVE = NUM_OF_ADULT + NUM_OF_CHILDREN;
-        verify(seatReservationService, times(1)).reserveSeat(accountId, EXPECTED_NUMBER_OF_SEAT_TO_RESERVE);
+        var expectedSeatsToReserve  = NUM_OF_ADULT + NUM_OF_CHILDREN;
+        verify(seatReservationService, times(1)).reserveSeat(accountId, expectedSeatsToReserve);
     }
 }
