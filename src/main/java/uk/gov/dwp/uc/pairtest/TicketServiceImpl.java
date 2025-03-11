@@ -18,7 +18,7 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketPaymentService ticketPaymentService;
     private final SeatReservationService seatReservationService;
-    private TicketServiceImpl(TicketPaymentService ticketPaymentService, SeatReservationService seatReservationService) {
+    TicketServiceImpl(TicketPaymentService ticketPaymentService, SeatReservationService seatReservationService) {
         this.ticketPaymentService = ticketPaymentService;
         this.seatReservationService = seatReservationService;
     }
@@ -50,7 +50,7 @@ public class TicketServiceImpl implements TicketService {
         var totalTicket = 0;
         for (var ticket: ticketTypeRequests) {
             /* ensure number of ticket  entered is positive */
-            if (ticket.getNoOfTickets()<0) throw new InvalidPurchaseException("Invalid number of ticket");
+            if (ticket.getNoOfTickets()<=0) throw new InvalidPurchaseException("Invalid number of ticket");
             totalTicket = totalTicket + ticket.getNoOfTickets();
             if (ticket.getTicketType()== TicketTypeRequest.Type.ADULT) {
                 adultRequest = adultRequest + ticket.getNoOfTickets();
