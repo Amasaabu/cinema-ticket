@@ -51,14 +51,14 @@ public class TicketServiceImpl implements TicketService {
         if (ticketTypeRequests.length<1) throw new InvalidPurchaseException("Empty ticket passed");
         for (var ticket: ticketTypeRequests) {
             /* ensure number of ticket  entered is positive */
-            if (ticket.getNoOfTickets()<=0) throw new InvalidPurchaseException("Invalid number of ticket");
+            if (ticket.getNoOfTickets()<0) throw new InvalidPurchaseException("Number of ticket can not be negative");
             totalTicket = totalTicket + ticket.getNoOfTickets();
             if (ticket.getTicketType()== TicketTypeRequest.Type.ADULT) {
                 adultRequest = adultRequest + ticket.getNoOfTickets();
             }
         }
         //validate total ticket requested does not go above the max allowed purchasable
-        if (totalTicket>MAX_TICKETS) throw new InvalidPurchaseException("Max number of purchasable ticket");
+        if (totalTicket>MAX_TICKETS) throw new InvalidPurchaseException("Max number of purchasable ticket reached "+ MAX_TICKETS);
         //validate there is at least an adult since there must be an adult present when all ticket type is purchased
         if (adultRequest<=0) throw new InvalidPurchaseException("There must be at least one adult");
     }
