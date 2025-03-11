@@ -1,9 +1,11 @@
 package uk.gov.dwp.uc.pairtest;
 
-import thirdparty.paymentgateway.TicketPaymentServiceImpl;
-import thirdparty.seatbooking.SeatReservationServiceImpl;
+import thirdparty.paymentgateway.TicketPaymentService;
+import thirdparty.seatbooking.SeatReservationService;
 import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest;
 import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
+
+import java.util.Arrays;
 
 
 public class TicketServiceImpl implements TicketService {
@@ -13,9 +15,13 @@ public class TicketServiceImpl implements TicketService {
     private static final int CHILD_TICKET_PRICE = 15;
     private static final int INFANT_TICKET_PRICE= 0;
 
-    //payment and seat reservation service instantiated
-    private final TicketPaymentServiceImpl paymentService = new TicketPaymentServiceImpl();
-    private final SeatReservationServiceImpl seatService = new SeatReservationServiceImpl();
+
+    private final TicketPaymentService ticketPaymentService;
+    private final SeatReservationService seatReservationService;
+    private TicketServiceImpl(TicketPaymentService ticketPaymentService, SeatReservationService seatReservationService) {
+        this.ticketPaymentService = ticketPaymentService;
+        this.seatReservationService = seatReservationService;
+    }
 
     /**
      * Validates that the account ID is valid.
@@ -26,8 +32,8 @@ public class TicketServiceImpl implements TicketService {
      */
     private void validateAccountId(Long accountId) {
         //ensure account id is greater than 0
-        if (accountId==null||accountId<=0) {
-            throw new InvalidPurchaseException();
+        if (accountId==null||accountId<=0L) {
+            throw new InvalidPurchaseException("Account Id Invalid");
         }
     }
     /**
@@ -44,16 +50,16 @@ public class TicketServiceImpl implements TicketService {
         var totalTicket = 0;
         for (var ticket: ticketTypeRequests) {
             /* ensure number of ticket  entered is positive */
-            if (ticket.getNoOfTickets()<0) throw new InvalidPurchaseException();
+            if (ticket.getNoOfTickets()<0) throw new InvalidPurchaseException("Invalid number of ticket");
             totalTicket = totalTicket + ticket.getNoOfTickets();
             if (ticket.getTicketType()== TicketTypeRequest.Type.ADULT) {
                 adultRequest = adultRequest + ticket.getNoOfTickets();
             }
         }
         //validate total ticket requested does not go above the max allowed purchasable
-        if (totalTicket>MAX_TICKETS) throw new InvalidPurchaseException();
+        if (totalTicket>MAX_TICKETS) throw new InvalidPurchaseException("Max number of purchasable ticket");
         //validate there is at least an adult since there must be an adult present when all ticket type is purchased
-        if (adultRequest<=0) throw new InvalidPurchaseException();
+        if (adultRequest<=0) throw new InvalidPurchaseException("There must be at least one adult");
     }
     /**
      * Calculates total cost of ticket request based on the type of ticket
@@ -78,7 +84,7 @@ public class TicketServiceImpl implements TicketService {
                     break;
                 default:
                     //ticket can only be infant, child and adult any other is invalid
-                    throw new InvalidPurchaseException();
+                    throw new InvalidPurchaseException("Invalid Ticket Type");
             }
         }
         return totalCost;
@@ -90,14 +96,11 @@ public class TicketServiceImpl implements TicketService {
      * @return The total number of seats to reserve
      * */
     private int calculateNumberOfSeat (TicketTypeRequest... ticketTypeRequests){
-        var totalNumberOfSeatToReserve=0;
-        for (var ticket: ticketTypeRequests) {
-            // as per requirement only adult and child can reserve
-            if (ticket.getTicketType()== TicketTypeRequest.Type.ADULT || ticket.getTicketType()==TicketTypeRequest.Type.CHILD) {
-                totalNumberOfSeatToReserve = totalNumberOfSeatToReserve+ticket.getNoOfTickets();
-            }
-        }
-        return  totalNumberOfSeatToReserve;
+        return Arrays.stream(ticketTypeRequests)
+                .filter(ticket -> ticket.getTicketType() == TicketTypeRequest.Type.ADULT
+                        || ticket.getTicketType() == TicketTypeRequest.Type.CHILD)
+                .mapToInt(TicketTypeRequest::getNoOfTickets)
+                .sum();
     }
 
     /**
@@ -114,10 +117,10 @@ public class TicketServiceImpl implements TicketService {
         //calculate total cost
         var totalCost = calculateTotalCost(ticketTypeRequests);
         //process payment
-        paymentService.makePayment(accountId, totalCost);
+        ticketPaymentService.makePayment(accountId, totalCost);
         //Calculate number of seat to be booked
         var totalSeatsToReserve = calculateNumberOfSeat(ticketTypeRequests);
-        seatService.reserveSeat(accountId, totalSeatsToReserve);
+        seatReservationService.reserveSeat(accountId, totalSeatsToReserve);
 
     }
 
