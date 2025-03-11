@@ -48,6 +48,7 @@ public class TicketServiceImpl implements TicketService {
         //first there must be at least an adult for every request
         var adultRequest = 0;
         var totalTicket = 0;
+        if (ticketTypeRequests.length<1) throw new InvalidPurchaseException("Empty ticket passed");
         for (var ticket: ticketTypeRequests) {
             /* ensure number of ticket  entered is positive */
             if (ticket.getNoOfTickets()<=0) throw new InvalidPurchaseException("Invalid number of ticket");

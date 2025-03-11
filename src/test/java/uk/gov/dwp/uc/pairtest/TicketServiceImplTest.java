@@ -45,6 +45,12 @@ public class TicketServiceImplTest {
         ticketService.purchaseTickets(accountId, tickets);
     }
     @Test(expected = InvalidPurchaseException.class)
+    public void shouldThrowInvalidPurchaseForEmptyTicketArray(){
+        var accountId = 1L;
+        TicketTypeRequest[] tickets = {};
+        ticketService.purchaseTickets(accountId, tickets);
+    }
+    @Test(expected = InvalidPurchaseException.class)
     public void shouldNotAllowMoreThan25Tickets(){
         var accountId = 1L;
         TicketTypeRequest request1 = new TicketTypeRequest(TicketTypeRequest.Type.ADULT, 10);
